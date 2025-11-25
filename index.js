@@ -3,6 +3,12 @@ const axios = require('axios');
 const app = express();
 const PORT = 3001;
 
+require('dotenv').config();
+const API_USER = process.env.API_USER;
+const API_PASSWORD = process.env.API_PASSWORD;
+const EXTERNAL_API_URL = process.env.EXTERNAL_API_URL;
+
+
 // Middleware to parse JSON bodies
 app.use(express.json());
 
@@ -253,12 +259,12 @@ app.get('/', (req, res) => {
 app.post('/api/chat-proxy', async (req, res) => {
     const userQuestion = req.body.question;
     
-    const EXTERNAL_API_URL = 'http://localhost:5678/webhook/poc1api';
-    const USERNAME = 'testUser1';
-    const PASSWORD = 'MyPassword123';
+    // const EXTERNAL_API_URL = 'http://localhost:5678/webhook/poc1api';
+    // const USERNAME = 'testUser1';
+    // const PASSWORD = 'MyPassword123';
 
     try {
-        const authHeader = 'Basic ' + Buffer.from(USERNAME + ':' + PASSWORD).toString('base64');
+        const authHeader = 'Basic ' + Buffer.from(API_USER + ':' + API_PASSWORD).toString('base64');
 
         const response = await axios.post(EXTERNAL_API_URL, {
             message: userQuestion 
