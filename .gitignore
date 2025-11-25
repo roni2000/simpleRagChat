@@ -1,0 +1,66 @@
+# Misk
+
+.env
+.env.*
+!.env.example
+.venv*
+AzureEnv.yml
+set_venv.sh
+# macOS system files
+.DS_Store
+**/.DS_Store
+curl_test.sh
+
+
+logs/
+logs/*
+
+# Ignore .cursor directory and contents
+.cursor/
+.cursor/*
+
+# Python cache files
+__pycache__/
+*/__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+.pytest_cache/
+htmlcov/
+.coverage
+.tox/
+share/*
+# Logs
+*.log
+
+# Docker specific
+.docker/
+
+# IDE specific
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS specific
+Thumbs.db
+*.tar
+*.rtf
+
