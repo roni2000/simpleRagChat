@@ -61,7 +61,7 @@ app.use((req, res, next) => {
 });
 
 // Mount auth routes (provides /login, /auth/google, /logout, etc.)
-app.use('/', authRoute);
+app.use('/',  authRoute);
 
 // 1. THE FRONTEND (HTML/CSS/JS)
 app.get('/', (req, res) => {
