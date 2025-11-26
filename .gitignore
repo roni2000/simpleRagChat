@@ -39,6 +39,8 @@ lib64/
 parts/
 sdist/
 var/
+db/
+
 *.egg-info/
 .installed.cfg
 *.egg

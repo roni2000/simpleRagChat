@@ -1,1 +1,1 @@
-docker build -t simpleRagChat:v1.0.0 .
+docker build -t simpleragchat:v1.0.0 .

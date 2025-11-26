@@ -11,5 +11,5 @@ coverage
 share/*
 *.rtf
 *.taf
-
+db/*
 
