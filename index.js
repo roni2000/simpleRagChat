@@ -1,19 +1,76 @@
 const express = require('express');
+const session = require('express-session');
 const axios = require('axios');
+const path = require('path');
+const fs = require('fs');
 const app = express();
-const PORT = 3001;
+
 
 require('dotenv').config();
 const API_USER = process.env.API_USER;
 const API_PASSWORD = process.env.API_PASSWORD;
 const EXTERNAL_API_URL = process.env.EXTERNAL_API_URL;
+const port = process.env.CHAT_APP_PORT || 3001;
 
+const passport = require('./config/auth');
 
 // Middleware to parse JSON bodies
 app.use(express.json());
 
+// Session configuration
+app.use(session({
+    secret: process.env.SESSION_SECRET || 'your-secret-key-change-this',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        secure: false, // Set to true in production with HTTPS
+        maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    }
+}));
+
+// Passport middleware
+app.use(passport.initialize());
+app.use(passport.session());
+
+// Route imports
+const authRoute = require('./routes/auth');
+const { ensureAuthenticated } = require('./middleware/auth');
+
+// View engine and views folder
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'ejs');
+
+// Parse URL-encoded bodies (for form submissions) in addition to JSON
+app.use(express.urlencoded({ extended: false }));
+
+// Minimal flash shim using session so routes using req.flash() work
+// (avoids adding connect-flash dependency for now)
+app.use((req, res, next) => {
+    if (!req.session) return next();
+    if (!req.session._flash) req.session._flash = {};
+    req.flash = function (type, msg) {
+        if (msg === undefined) {
+            const val = req.session._flash[type] || [];
+            delete req.session._flash[type];
+            return val;
+        }
+        req.session._flash[type] = req.session._flash[type] || [];
+        req.session._flash[type].push(msg);
+    };
+    next();
+});
+
+// Mount auth routes (provides /login, /auth/google, /logout, etc.)
+app.use('/', authRoute);
+
 // 1. THE FRONTEND (HTML/CSS/JS)
 app.get('/', (req, res) => {
+
+  // If Google login is disabled for testing, redirect to dashboard
+  if (process.env.GOOGLE_LOGIN !== 'FALSE' && !req.isAuthenticated()) {
+      return res.redirect('/login');
+  }
+
   res.send(`
     <!DOCTYPE html>
     <html lang="en">
@@ -284,6 +341,6 @@ app.post('/api/chat-proxy', async (req, res) => {
     }
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+app.listen(port, () => {
+  console.log(`Server is running on http://localhost:${port}`);
 });
