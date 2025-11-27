@@ -64,12 +64,7 @@ app.use((req, res, next) => {
 app.use('/',  authRoute);
 
 // 1. THE FRONTEND (HTML/CSS/JS)
-app.get('/', (req, res) => {
-
-  // If Google login is disabled for testing, redirect to dashboard
-  if (process.env.GOOGLE_LOGIN !== 'FALSE' && !req.isAuthenticated()) {
-      return res.redirect('/login');
-  }
+app.get('/', ensureAuthenticated, (req, res) => {
 
   res.send(`
     <!DOCTYPE html>
@@ -315,10 +310,6 @@ app.get('/', (req, res) => {
 // 2. THE BACKEND API PROXY
 app.post('/api/chat-proxy', async (req, res) => {
     const userQuestion = req.body.question;
-    
-    // const EXTERNAL_API_URL = 'http://localhost:5678/webhook/poc1api';
-    // const USERNAME = 'testUser1';
-    // const PASSWORD = 'MyPassword123';
 
     try {
         const authHeader = 'Basic ' + Buffer.from(API_USER + ':' + API_PASSWORD).toString('base64');
