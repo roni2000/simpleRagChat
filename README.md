@@ -1,4 +1,4 @@
-# POC1 - Authenticated Chat Application
+# simpleRagChat - Authenticated Chat Application
 
 This is a simple Node.js application that demonstrates user authentication using Google OAuth and a chat interface that communicates with an external API.
 
