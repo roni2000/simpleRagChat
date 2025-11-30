@@ -117,8 +117,8 @@ app.get('/', ensureAuthenticated, (req, res) => {
                 position: fixed;
                 bottom: 90px;
                 right: 20px;
-                width: 350px;
-                height: 500px;
+                width: 600px;
+                height: 550px;
                 background: white;
                 border-radius: 10px;
                 box-shadow: 0px 4px 20px rgba(0,0,0,0.2);
@@ -225,6 +225,30 @@ app.get('/', ensureAuthenticated, (req, res) => {
         </div>
 
         <script>
+            // Per-page (per-load) session id: regenerated whenever the page is refreshed
+            // (stored in-memory only so it will change on refresh or navigation)
+            function generateSessionId(len = 48) {
+                // Prefer crypto for randomness when available
+                try {
+                    if (window.crypto && window.crypto.getRandomValues) {
+                        const arr = new Uint8Array(len / 2);
+                        window.crypto.getRandomValues(arr);
+                        return Array.from(arr, b => ('0' + b.toString(16)).slice(-2)).join('');
+                    }
+                } catch (err) {
+                    // fallthrough to fallback below
+                }
+
+                // Fallback pseudo-random generator
+                let result = '';
+                for (let i = 0; i < len; i++) {
+                    result += Math.floor(Math.random() * 16).toString(16);
+                }
+                return result;
+            }
+
+            const sessionId = generateSessionId();
+
             const chatWindow = document.getElementById('chat-window');
             const chatCircle = document.getElementById('chat-circle');
             const messagesContainer = document.getElementById('chat-messages');
@@ -269,10 +293,11 @@ app.get('/', ensureAuthenticated, (req, res) => {
                 messagesContainer.appendChild(loadingDiv);
 
                 try {
+                    // Include the per-page sessionId with the chat request
                     const response = await fetch('/api/chat-proxy', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ question: text })
+                        body: JSON.stringify({ question: text, sessionId })
                     });
 
                     const data = await response.json();
@@ -310,12 +335,17 @@ app.get('/', ensureAuthenticated, (req, res) => {
 // 2. THE BACKEND API PROXY
 app.post('/api/chat-proxy', async (req, res) => {
     const userQuestion = req.body.question;
+    const sessionId = req.body.sessionId || null;
 
     try {
+        // Log incoming request for debugging so devs can verify sessionId is forwarded correctly
+        console.log('chat-proxy: incoming request', { question: userQuestion, sessionId });
         const authHeader = 'Basic ' + Buffer.from(API_USER + ':' + API_PASSWORD).toString('base64');
 
+        // Forward the sessionId to the external API if provided so it can be associated server-side
         const response = await axios.post(EXTERNAL_API_URL, {
-            message: userQuestion 
+            message: userQuestion,
+            sessionId
         }, {
             headers: {
                 'Authorization': authHeader,
