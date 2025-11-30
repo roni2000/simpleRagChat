@@ -4,6 +4,7 @@ const axios = require('axios');
 const path = require('path');
 const fs = require('fs');
 const app = express();
+const logger = require('./config/logger');
 
 
 require('dotenv').config();
@@ -339,7 +340,7 @@ app.post('/api/chat-proxy', async (req, res) => {
 
     try {
         // Log incoming request for debugging so devs can verify sessionId is forwarded correctly
-        console.log('chat-proxy: incoming request', { question: userQuestion, sessionId });
+        logger.info('chat-proxy: incoming request', { question: userQuestion, sessionId });
         const authHeader = 'Basic ' + Buffer.from(API_USER + ':' + API_PASSWORD).toString('base64');
 
         // Forward the sessionId to the external API if provided so it can be associated server-side
@@ -357,11 +358,12 @@ app.post('/api/chat-proxy', async (req, res) => {
         res.send(response.data);
 
     } catch (error) {
-        console.error("External API Error:", error.message);
+        logger.error("External API Error:", error.message);
         res.status(500).json({ output: 'Sorry, I am currently unavailable.' });
     }
 });
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
+  logger.info(`Server is running on http://localhost:${port}`);
 });
