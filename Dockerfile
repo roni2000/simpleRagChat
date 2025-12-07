@@ -1,21 +1,28 @@
-# Use Node Alpine base image
-FROM node:18-alpine
+# Use Node LTS-slim base image (Debian-based)
+FROM node:lts-slim
 
 # Set working directory
 WORKDIR /app
 
-# Copy dependencies and install them
+# Copy lock file and package.json FIRST to leverage Docker caching.
+# This step only invalidates if package.json or the lock file changes.
 COPY package*.json ./
-RUN npm ci --only=production
+
+# Install dependencies
+# NOTE: Using 'npm install' here instead of 'npm ci' to resolve the earlier lock file mismatch error.
+# If your local package-lock.json is fixed, you can switch back to 'npm ci --only=production'
+RUN npm install --only=production
+
+# --- Install necessary OS tools ---
+# Fix: Use apt-get for Debian-based images (lts-slim) instead of apk (Alpine)
+RUN apt-get update && apt-get install -y curl
 
 # Copy all app source code
+# This step is the LAST copy, so only source code changes invalidate the cache.
 COPY . .
 
-# Install curl (optional)
-RUN apk add --no-cache curl
-
 # Use existing 'node' user and group (UID/GID 1000)
-# Ensure all app files are owned by this user/group
+# Ensure all app files are owned by this user/group (Optional, but good practice after COPY/install)
 RUN chown -R node:node /app
 
 # Switch to non-root user (UID 1000)
